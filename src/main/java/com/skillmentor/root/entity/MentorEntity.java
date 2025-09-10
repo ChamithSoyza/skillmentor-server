@@ -22,8 +22,8 @@ public class MentorEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "mentor_id")
     private Integer mentorId;
-    @NotBlank(message = "Clerk mentor ID must not be blank")
-    @Column(name = "clerk_mentor_id", nullable = false, unique = true)
+//    @NotBlank(message = "Clerk mentor ID must not be blank")
+    @Column(name = "clerk_mentor_id" /*, nullable = false, unique = true*/)
     private String clerkMentorId;
     @NotBlank(message = "First name must not be blank")
     @Column(name = "first_name", nullable = false)
@@ -36,13 +36,13 @@ public class MentorEntity {
     private String address;
     @Email(message = "Invalid email format")
     @NotBlank(message = "Email must not be blank")
-    @Column(name = "email", nullable = false)
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
     @NotBlank(message = "Title must not be blank")
     @Column(name = "title", nullable = false)
     private String title;
     @NotBlank(message = "Phone number must not be blank")
-    @Column(name = "phone_number", nullable = false)
+    @Column(name = "phone_number", nullable = false, unique = true)
     private String phoneNumber;
     @NotBlank(message = "Profession must not be blank")
     @Column(name = "profession", nullable = false)

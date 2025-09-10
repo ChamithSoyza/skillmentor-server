@@ -1,6 +1,7 @@
 package com.skillmentor.root.exception;
 
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -12,7 +13,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-//@ControllerAdvice
+@ControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationErrors(MethodArgumentNotValidException ex) {
@@ -55,6 +56,30 @@ public class GlobalExceptionHandler {
         body.put("error", "Internal Server Error");
         body.put("message", ex.getMessage());
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", Instant.now());
+        body.put("status", HttpStatus.CONFLICT.value());
+        body.put("error", "Data Integrity Conflict");
+
+        if(ex.getCause() instanceof org.hibernate.exception.ConstraintViolationException){
+            String constraintName = ((org.hibernate.exception.ConstraintViolationException)ex.getCause()).getConstraintName();
+            if (constraintName != null) {
+                if (constraintName.contains("email")){
+                    body.put("message", "A mentor with this email already exists.");
+                }else if (constraintName.contains("phone_number")){
+                    body.put("message", "A mentor with this phone number already exists.");
+                }else{
+                    body.put("message", "A database unique constraint was violated.");
+                }
+            }
+        }else{
+            body.put("message", "A data integrity violation occurred.");
+        }
+        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
     }
 
 }
