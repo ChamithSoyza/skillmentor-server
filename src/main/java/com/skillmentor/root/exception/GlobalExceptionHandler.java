@@ -65,18 +65,27 @@ public class GlobalExceptionHandler {
         body.put("status", HttpStatus.CONFLICT.value());
         body.put("error", "Data Integrity Conflict");
 
-        if(ex.getCause() instanceof org.hibernate.exception.ConstraintViolationException){
-            String constraintName = ((org.hibernate.exception.ConstraintViolationException)ex.getCause()).getConstraintName();
-            if (constraintName != null) {
-                if (constraintName.contains("email")){
-                    body.put("message", "A mentor with this email already exists.");
-                }else if (constraintName.contains("phone_number")){
-                    body.put("message", "A mentor with this phone number already exists.");
-                }else{
+        if (ex.getCause() instanceof org.hibernate.exception.ConstraintViolationException) {
+            org.hibernate.exception.ConstraintViolationException cve = (org.hibernate.exception.ConstraintViolationException) ex.getCause();
+            String constraintName = cve.getConstraintName();
+
+            if (constraintName != null && constraintName.contains("email")) {
+                body.put("message", "A mentor with this email already exists.");
+            } else if (constraintName != null && constraintName.contains("phone_number")) {
+                body.put("message", "A mentor with this phone number already exists.");
+            } else {
+                String sqlMessage = cve.getMessage();
+                if (sqlMessage != null) {
+                    if (sqlMessage.contains("Duplicate entry") && sqlMessage.contains("email")) {
+                        body.put("message", "A mentor with this email already exists.");
+                    } else if (sqlMessage.contains("Duplicate entry") && sqlMessage.contains("phone_number")) {
+                        body.put("mesage", "A mentor with this phone number already exists.");
+                    }
+                } else {
                     body.put("message", "A database unique constraint was violated.");
                 }
             }
-        }else{
+        } else {
             body.put("message", "A data integrity violation occurred.");
         }
         return new ResponseEntity<>(body, HttpStatus.CONFLICT);
